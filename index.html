@@ -235,9 +235,17 @@
         }
 
         @keyframes bgShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         body.party-mode {
@@ -247,10 +255,23 @@
         }
 
         @keyframes floatUp {
-            0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-20vh) scale(1.5) rotate(360deg); opacity: 0; }
+            0% {
+                transform: translateY(100vh) scale(0.5) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-20vh) scale(1.5) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         .floating-emoji {
@@ -258,7 +279,7 @@
             z-index: 999;
             pointer-events: none;
             animation: floatUp 5s linear forwards;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.2));
         }
 
         .special-message {
@@ -267,7 +288,7 @@
             font-weight: 600;
             margin-top: 20px;
             min-height: 2em;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
             letter-spacing: 1px;
         }
     </style>
@@ -309,7 +330,7 @@
         // ==========================================
 
         // 1. Set the password here
-        const PASSWORD = "yuktha";
+        const PASSWORD = "Moktha";
 
 
 
@@ -500,7 +521,7 @@
                 const y = e.clientY - rect.top;
                 const xMid = rect.width / 2;
                 const yMid = rect.height / 2;
-                const xRotation = ((y - yMid) / yMid) * -10; 
+                const xRotation = ((y - yMid) / yMid) * -10;
                 const yRotation = ((x - xMid) / xMid) * 10;
                 container.style.transform = `perspective(1000px) rotateX(${xRotation}deg) rotateY(${yRotation}deg) scale(1.05)`;
                 container.style.transition = 'none';
