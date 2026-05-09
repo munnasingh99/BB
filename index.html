@@ -57,6 +57,10 @@
             display: block;
         }
 
+        #reward-screen {
+            max-width: 600px;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -138,8 +142,9 @@
         /* Scratch Card Styles */
         #scratch-container {
             position: relative;
-            width: 300px;
-            height: 300px;
+            width: 100%;
+            max-width: 1428px;
+            aspect-ratio: 1428 / 818;
             margin: 0 auto;
             border-radius: 16px;
             overflow: hidden;
@@ -180,6 +185,38 @@
             }
         }
 
+        @keyframes floatImage {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px) scale(1.02);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glowImage {
+            from {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            to {
+                box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+            }
+        }
+
+        .revealed-image {
+            animation: floatImage 3s ease-in-out infinite !important;
+        }
+
+        .revealed-container {
+            animation: glowImage 2s infinite alternate !important;
+        }
+
         .birthday-text h1 {
             color: var(--primary-color);
             margin: 0;
@@ -192,16 +229,6 @@
             font-size: 1.8rem;
             margin: 15px 0 0;
             letter-spacing: 5px;
-        }
-
-        #question-image-container img {
-            width: 100%;
-            max-height: 220px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-top: 15px;
-            filter: blur(8px);
-            transition: filter 0.5s ease;
         }
     </style>
 </head>
@@ -218,25 +245,10 @@
         <div id="pwd-error" class="error-msg">Wrong password! Try again.</div>
     </div>
 
-    <!-- 2. Quiz Screen -->
-    <div id="quiz-screen" class="screen">
-        <h2>Quiz Time! 🧠</h2>
-        <p id="question-text">Loading question...</p>
-
-        <div id="question-image-container" style="display: none;"></div>
-
-        <input type="text" id="answer-input" placeholder="Your answer..." autocomplete="off"
-            onkeypress="handleEnter(event, checkAnswer)">
-
-        <div id="feedback-msg" class="feedback-msg"></div>
-
-        <button id="submit-btn" onclick="checkAnswer()">Submit Answer</button>
-        <button id="next-btn" style="display: none;" onclick="nextQuestion()">Next Question ➡️</button>
-    </div>
 
     <!-- 3. Reward Screen -->
     <div id="reward-screen" class="screen">
-        <h2 id="reward-title">🎁 You did it!</h2>
+        <h2 id="reward-title">🎁 Here is birthday gift for you!</h2>
         <p id="reward-subtitle">Scratch to reveal your surprise!</p>
 
         <div id="scratch-container">
@@ -258,40 +270,13 @@
         // 1. Set the password here
         const PASSWORD = "yuktha";
 
-        // 2. Set the questions and answers here
-        const QUESTIONS = [
-            {
-                text: "Guess the year we met?",
-                type: "number",
-                answer: "2019",
-                image: null // No image for this question
-            },
-            {
-                text: "What's my favorite color?",
-                type: "text",
-                answer: "blue", // NOTE: Keep answer lowercase for matching
-                image: null
-            },
-            {
-                text: "Where was our first vacation?",
-                type: "text",
-                answer: "beach", // NOTE: Keep answer lowercase
-                image: null
-            },
-            {
-                text: "Guess the photo (what's in this image?)",
-                type: "text",
-                answer: "cake",
-                // 3. Image URL for the blurred photo question
-                image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?q=80&w=400&auto=format&fit=crop"
-            }
-        ];
+
 
         // 4. Set the birthday person's name here
-        const BIRTHDAY_NAME = "ALEX"; // Change this to their name
+        const BIRTHDAY_NAME = "Yuktha❤️"; // Change this to their name
 
         // 5. Set the laptop image URL for the scratch card reveal
-        const LAPTOP_IMAGE_URL = "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=600&auto=format&fit=crop";
+        const LAPTOP_IMAGE_URL = "f:/Project/BB/BB/laptop.png";
 
         // ==========================================
         // --- CUSTOMIZATION END ---
@@ -299,8 +284,6 @@
 
 
         // --- App Logic ---
-
-        let currentQuestionIndex = 0;
 
         // Helper for pressing Enter key
         function handleEnter(e, callback) {
@@ -314,8 +297,8 @@
             // Case-insensitive password check
             if (pwdInput.trim().toUpperCase() === PASSWORD.toUpperCase()) {
                 document.getElementById('password-screen').classList.remove('active');
-                document.getElementById('quiz-screen').classList.add('active');
-                loadQuestion();
+                document.getElementById('reward-screen').classList.add('active');
+                initScratchCard();
             } else {
                 errorMsg.style.display = 'block';
                 // Shake effect on input
@@ -327,73 +310,6 @@
             }
         }
 
-        function loadQuestion() {
-            const q = QUESTIONS[currentQuestionIndex];
-            document.getElementById('question-text').innerText = `Q${currentQuestionIndex + 1}: ${q.text}`;
-
-            const imgContainer = document.getElementById('question-image-container');
-            if (q.image) {
-                imgContainer.innerHTML = `<img src="${q.image}" alt="Guess the image">`;
-                imgContainer.style.display = 'block';
-            } else {
-                imgContainer.style.display = 'none';
-            }
-
-            const input = document.getElementById('answer-input');
-            input.type = q.type || 'text';
-            input.value = '';
-            input.focus();
-
-            document.getElementById('feedback-msg').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('submit-btn').style.display = 'block';
-
-            // Change Enter key behavior to submit answer
-            input.onkeypress = (e) => handleEnter(e, checkAnswer);
-        }
-
-        function checkAnswer() {
-            const inputEl = document.getElementById('answer-input');
-            const ansInput = inputEl.value.trim().toLowerCase();
-            const correctAns = QUESTIONS[currentQuestionIndex].answer.toString().toLowerCase();
-            const feedbackMsg = document.getElementById('feedback-msg');
-
-            if (ansInput === correctAns) {
-                feedbackMsg.innerText = "Correct! 🎉";
-                feedbackMsg.style.color = "#4CAF50";
-                feedbackMsg.style.display = "block";
-                document.getElementById('submit-btn').style.display = 'none';
-                document.getElementById('next-btn').style.display = 'block';
-
-                // Remove blur if there's an image
-                const img = document.querySelector('#question-image-container img');
-                if (img) img.style.filter = 'blur(0)';
-
-                // Change Enter key behavior to next question
-                inputEl.onkeypress = (e) => handleEnter(e, nextQuestion);
-                document.getElementById('next-btn').focus();
-            } else {
-                feedbackMsg.innerText = "Oops! Wrong answer. Try again.";
-                feedbackMsg.style.color = "#f44336";
-                feedbackMsg.style.display = "block";
-
-                // Shake effect
-                inputEl.style.transform = 'translateX(-10px)';
-                setTimeout(() => inputEl.style.transform = 'translateX(10px)', 50);
-                setTimeout(() => inputEl.style.transform = 'translateX(0)', 100);
-            }
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < QUESTIONS.length) {
-                loadQuestion();
-            } else {
-                document.getElementById('quiz-screen').classList.remove('active');
-                document.getElementById('reward-screen').classList.add('active');
-                initScratchCard();
-            }
-        }
 
         // --- Scratch Card Logic ---
 
@@ -404,8 +320,8 @@
         let scratchCheckCounter = 0;
 
         function initScratchCard() {
-            canvas.width = 300;
-            canvas.height = 300;
+            canvas.width = 1428;
+            canvas.height = 818;
 
             // Draw gray overlay
             ctx.fillStyle = '#b0bec5';
@@ -416,11 +332,11 @@
             ctx.font = '700 22px Poppins, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('SCAN HERE', canvas.width / 2, canvas.height / 2 - 25);
+            ctx.fillText('', canvas.width / 2, canvas.height / 2 - 25);
             ctx.font = '700 30px Poppins, sans-serif';
             ctx.fillText('↓', canvas.width / 2, canvas.height / 2 + 5);
             ctx.font = '700 24px Poppins, sans-serif';
-            ctx.fillText('SCRATCH', canvas.width / 2, canvas.height / 2 + 35);
+            ctx.fillText('', canvas.width / 2, canvas.height / 2 + 35);
 
             // Set the underlying image
             document.getElementById('laptop-image').src = LAPTOP_IMAGE_URL;
@@ -471,7 +387,7 @@
             // "Erase" the overlay
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
-            ctx.arc(x, y, 25, 0, Math.PI * 2); // 25 is the brush size
+            ctx.arc(x, y, 80, 0, Math.PI * 2); // Increased brush size to 80 for larger canvas
             ctx.fill();
 
             // Check percentage periodically to optimize performance
@@ -484,7 +400,13 @@
         function checkRevealPercentage() {
             if (isRevealed) return;
 
-            const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            // Only check the center 60% of the canvas to trigger the reveal
+            const checkW = canvas.width * 0.6;
+            const checkH = canvas.height * 0.6;
+            const startX = (canvas.width - checkW) / 2;
+            const startY = (canvas.height - checkH) / 2;
+
+            const pixels = ctx.getImageData(startX, startY, checkW, checkH).data;
             let transparentCount = 0;
             const totalPixels = pixels.length / 4;
 
@@ -499,7 +421,8 @@
 
             const percentage = (transparentCount / (totalPixels / stride)) * 100;
 
-            if (percentage >= 70) {
+            // Reveal when 40% of the center area is scratched
+            if (percentage >= 40) {
                 isRevealed = true;
 
                 // Hide canvas smoothly
@@ -527,30 +450,31 @@
             // Change background dynamically
             document.body.style.background = 'linear-gradient(135deg, #a18cd1, #fbc2eb)';
 
-            // Fire Confetti!
-            const duration = 3000;
-            const end = Date.now() + duration;
+            // Add classes for image animation
+            document.getElementById('laptop-image').classList.add('revealed-image');
+            document.getElementById('scratch-container').classList.add('revealed-container');
 
-            (function frame() {
-                confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: ['#ff9a9e', '#fecfef', '#a18cd1', '#fbc2eb', '#ffffff']
-                });
-                confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: ['#ff9a9e', '#fecfef', '#a18cd1', '#fbc2eb', '#ffffff']
-                });
+            // Fire Extended Confetti Show!
+            const duration = 10000; // 10 seconds of fireworks
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function () {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
                 }
-            }());
+
+                const particleCount = 50 * (timeLeft / duration);
+                // since particles fall down, start a bit higher than random
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
         }
     </script>
 </body>
