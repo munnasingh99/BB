@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Surprise!</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+
+    <style>
+        :root {
+            /* ========================================== */
+            /* --- CUSTOMIZATION: COLORS --- */
+            /* ========================================== */
+            /* You can change the background colors here */
+            --bg-gradient-start: #ff9a9e;
+            --bg-gradient-end: #fecfef;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --primary-color: #ff6b6b;
+            --primary-hover: #ff5252;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            transition: background 1s ease;
+            color: var(--text-color);
+        }
+
+        .screen {
+            display: none;
+            background: var(--card-bg);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1,
+        h2 {
+            margin-top: 0;
+            color: var(--text-color);
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 1rem;
+            margin: 1rem 0;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error-msg {
+            color: #f44336;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .feedback-msg {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 15px 0;
+            display: none;
+        }
+
+        /* Scratch Card Styles */
+        #scratch-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+
+        #laptop-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+            z-index: 2;
+        }
+
+        .birthday-text {
+            display: none;
+            margin-top: 2rem;
+            animation: popIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .birthday-text h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2.2rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+        }
+
+        .birthday-text p {
+            font-size: 1.8rem;
+            margin: 15px 0 0;
+            letter-spacing: 5px;
+        }
+
+        #question-image-container img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-top: 15px;
+            filter: blur(8px);
+            transition: filter 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. Password Screen -->
+    <div id="password-screen" class="screen active">
+        <h2>🔒 Unlock Surprise</h2>
+        <p>Enter the secret password to continue.</p>
+        <input type="password" id="password-input" placeholder="Enter password" autocomplete="off"
+            onkeypress="handleEnter(event, unlock)">
+        <button onclick="unlock()">Unlock</button>
+        <div id="pwd-error" class="error-msg">Wrong password! Try again.</div>
+    </div>
+
+    <!-- 2. Quiz Screen -->
+    <div id="quiz-screen" class="screen">
+        <h2>Quiz Time! 🧠</h2>
+        <p id="question-text">Loading question...</p>
+
+        <div id="question-image-container" style="display: none;"></div>
+
+        <input type="text" id="answer-input" placeholder="Your answer..." autocomplete="off"
+            onkeypress="handleEnter(event, checkAnswer)">
+
+        <div id="feedback-msg" class="feedback-msg"></div>
+
+        <button id="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+        <button id="next-btn" style="display: none;" onclick="nextQuestion()">Next Question ➡️</button>
+    </div>
+
+    <!-- 3. Reward Screen -->
+    <div id="reward-screen" class="screen">
+        <h2 id="reward-title">🎁 You did it!</h2>
+        <p id="reward-subtitle">Scratch to reveal your surprise!</p>
+
+        <div id="scratch-container">
+            <img id="laptop-image" alt="Secret Reward">
+            <canvas id="scratch-canvas"></canvas>
+        </div>
+
+        <div id="birthday-text-container" class="birthday-text">
+            <h1>HAPPY BIRTHDAY <br><span id="bday-name">NAME</span>!</h1>
+            <p>🎂 🎁 🎈</p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // --- CUSTOMIZATION START ---
+        // ==========================================
+
+        // 1. Set the password here
+        const PASSWORD = "yuktha";
+
+        // 2. Set the questions and answers here
+        const QUESTIONS = [
+            {
+                text: "Guess the year we met?",
+                type: "number",
+                answer: "2019",
+                image: null // No image for this question
+            },
+            {
+                text: "What's my favorite color?",
+                type: "text",
+                answer: "blue", // NOTE: Keep answer lowercase for matching
+                image: null
+            },
+            {
+                text: "Where was our first vacation?",
+                type: "text",
+                answer: "beach", // NOTE: Keep answer lowercase
+                image: null
+            },
+            {
+                text: "Guess the photo (what's in this image?)",
+                type: "text",
+                answer: "cake",
+                // 3. Image URL for the blurred photo question
+                image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?q=80&w=400&auto=format&fit=crop"
+            }
+        ];
+
+        // 4. Set the birthday person's name here
+        const BIRTHDAY_NAME = "ALEX"; // Change this to their name
+
+        // 5. Set the laptop image URL for the scratch card reveal
+        const LAPTOP_IMAGE_URL = "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=600&auto=format&fit=crop";
+
+        // ==========================================
+        // --- CUSTOMIZATION END ---
+        // ==========================================
+
+
+        // --- App Logic ---
+
+        let currentQuestionIndex = 0;
+
+        // Helper for pressing Enter key
+        function handleEnter(e, callback) {
+            if (e.key === 'Enter') callback();
+        }
+
+        function unlock() {
+            const pwdInput = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('pwd-error');
+
+            // Case-insensitive password check
+            if (pwdInput.trim().toUpperCase() === PASSWORD.toUpperCase()) {
+                document.getElementById('password-screen').classList.remove('active');
+                document.getElementById('quiz-screen').classList.add('active');
+                loadQuestion();
+            } else {
+                errorMsg.style.display = 'block';
+                // Shake effect on input
+                const inputEl = document.getElementById('password-input');
+                inputEl.style.transform = 'translateX(-10px)';
+                setTimeout(() => inputEl.style.transform = 'translateX(10px)', 50);
+                setTimeout(() => inputEl.style.transform = 'translateX(0)', 100);
+                setTimeout(() => errorMsg.style.display = 'none', 3000);
+            }
+        }
+
+        function loadQuestion() {
+            const q = QUESTIONS[currentQuestionIndex];
+            document.getElementById('question-text').innerText = `Q${currentQuestionIndex + 1}: ${q.text}`;
+
+            const imgContainer = document.getElementById('question-image-container');
+            if (q.image) {
+                imgContainer.innerHTML = `<img src="${q.image}" alt="Guess the image">`;
+                imgContainer.style.display = 'block';
+            } else {
+                imgContainer.style.display = 'none';
+            }
+
+            const input = document.getElementById('answer-input');
+            input.type = q.type || 'text';
+            input.value = '';
+            input.focus();
+
+            document.getElementById('feedback-msg').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'block';
+
+            // Change Enter key behavior to submit answer
+            input.onkeypress = (e) => handleEnter(e, checkAnswer);
+        }
+
+        function checkAnswer() {
+            const inputEl = document.getElementById('answer-input');
+            const ansInput = inputEl.value.trim().toLowerCase();
+            const correctAns = QUESTIONS[currentQuestionIndex].answer.toString().toLowerCase();
+            const feedbackMsg = document.getElementById('feedback-msg');
+
+            if (ansInput === correctAns) {
+                feedbackMsg.innerText = "Correct! 🎉";
+                feedbackMsg.style.color = "#4CAF50";
+                feedbackMsg.style.display = "block";
+                document.getElementById('submit-btn').style.display = 'none';
+                document.getElementById('next-btn').style.display = 'block';
+
+                // Remove blur if there's an image
+                const img = document.querySelector('#question-image-container img');
+                if (img) img.style.filter = 'blur(0)';
+
+                // Change Enter key behavior to next question
+                inputEl.onkeypress = (e) => handleEnter(e, nextQuestion);
+                document.getElementById('next-btn').focus();
+            } else {
+                feedbackMsg.innerText = "Oops! Wrong answer. Try again.";
+                feedbackMsg.style.color = "#f44336";
+                feedbackMsg.style.display = "block";
+
+                // Shake effect
+                inputEl.style.transform = 'translateX(-10px)';
+                setTimeout(() => inputEl.style.transform = 'translateX(10px)', 50);
+                setTimeout(() => inputEl.style.transform = 'translateX(0)', 100);
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < QUESTIONS.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('quiz-screen').classList.remove('active');
+                document.getElementById('reward-screen').classList.add('active');
+                initScratchCard();
+            }
+        }
+
+        // --- Scratch Card Logic ---
+
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let isDrawing = false;
+        let isRevealed = false;
+        let scratchCheckCounter = 0;
+
+        function initScratchCard() {
+            canvas.width = 300;
+            canvas.height = 300;
+
+            // Draw gray overlay
+            ctx.fillStyle = '#b0bec5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add instructions text to overlay
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 22px Poppins, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('SCAN HERE', canvas.width / 2, canvas.height / 2 - 25);
+            ctx.font = '700 30px Poppins, sans-serif';
+            ctx.fillText('↓', canvas.width / 2, canvas.height / 2 + 5);
+            ctx.font = '700 24px Poppins, sans-serif';
+            ctx.fillText('SCRATCH', canvas.width / 2, canvas.height / 2 + 35);
+
+            // Set the underlying image
+            document.getElementById('laptop-image').src = LAPTOP_IMAGE_URL;
+
+            // Event Listeners for scratching
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+
+            // Support for touch devices
+            canvas.addEventListener('touchstart', startDrawing, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            if (isRevealed) return;
+            isDrawing = true;
+            draw(e);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function draw(e) {
+            if (!isDrawing || isRevealed) return;
+            e.preventDefault(); // Prevent scrolling on mobile while scratching
+
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            if (e.touches && e.touches.length > 0) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            // Handle canvas scaling if CSS size differs from width/height attributes
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            x *= scaleX;
+            y *= scaleY;
+
+            // "Erase" the overlay
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2); // 25 is the brush size
+            ctx.fill();
+
+            // Check percentage periodically to optimize performance
+            scratchCheckCounter++;
+            if (scratchCheckCounter % 15 === 0) {
+                checkRevealPercentage();
+            }
+        }
+
+        function checkRevealPercentage() {
+            if (isRevealed) return;
+
+            const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let transparentCount = 0;
+            const totalPixels = pixels.length / 4;
+
+            // Check every 16th pixel to calculate fast
+            const stride = 16;
+            for (let i = 0; i < pixels.length; i += 4 * stride) {
+                // Alpha channel is at index i + 3
+                if (pixels[i + 3] < 128) {
+                    transparentCount++;
+                }
+            }
+
+            const percentage = (transparentCount / (totalPixels / stride)) * 100;
+
+            if (percentage >= 70) {
+                isRevealed = true;
+
+                // Hide canvas smoothly
+                canvas.style.transition = 'opacity 1s ease-out';
+                canvas.style.opacity = '0';
+
+                // Clean up DOM after fade out
+                setTimeout(() => {
+                    canvas.style.display = 'none';
+                    triggerBirthdayAnimation();
+                }, 1000);
+            }
+        }
+
+        function triggerBirthdayAnimation() {
+            // Hide title/subtitle to make room for birthday text
+            document.getElementById('reward-title').style.display = 'none';
+            document.getElementById('reward-subtitle').style.display = 'none';
+
+            // Show birthday text
+            const textContainer = document.getElementById('birthday-text-container');
+            document.getElementById('bday-name').innerText = BIRTHDAY_NAME;
+            textContainer.style.display = 'block';
+
+            // Change background dynamically
+            document.body.style.background = 'linear-gradient(135deg, #a18cd1, #fbc2eb)';
+
+            // Fire Confetti!
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#ff9a9e', '#fecfef', '#a18cd1', '#fbc2eb', '#ffffff']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#ff9a9e', '#fecfef', '#a18cd1', '#fbc2eb', '#ffffff']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+    </script>
+</body>
+
+</html>
