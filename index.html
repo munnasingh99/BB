@@ -233,6 +233,43 @@
             margin: 15px 0 0;
             letter-spacing: 5px;
         }
+
+        @keyframes bgShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body.party-mode {
+            background: linear-gradient(270deg, #ff9a9e, #fecfef, #a18cd1, #fbc2eb, #ff9a9e, #a18cd1) !important;
+            background-size: 400% 400% !important;
+            animation: bgShift 15s ease infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-20vh) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+
+        .floating-emoji {
+            position: fixed;
+            z-index: 999;
+            pointer-events: none;
+            animation: floatUp 5s linear forwards;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+        }
+
+        .special-message {
+            font-size: 1.3rem;
+            color: #ff4081;
+            font-weight: 600;
+            margin-top: 20px;
+            min-height: 2em;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 
@@ -262,6 +299,7 @@
         <div id="birthday-text-container" class="birthday-text">
             <h1>HAPPY BIRTHDAY <br><span id="bday-name">NAME</span>!</h1>
             <p>🎂 🎁 🎈</p>
+            <p id="special-message" class="special-message"></p>
         </div>
     </div>
 
@@ -451,7 +489,55 @@
             textContainer.style.display = 'block';
 
             // Change background dynamically
-            document.body.style.background = 'linear-gradient(135deg, #a18cd1, #fbc2eb)';
+            document.body.classList.add('party-mode');
+
+            // Interactive 3D Tilt Effect on the Container
+            const container = document.getElementById('scratch-container');
+            container.style.transformStyle = 'preserve-3d';
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const xMid = rect.width / 2;
+                const yMid = rect.height / 2;
+                const xRotation = ((y - yMid) / yMid) * -10; 
+                const yRotation = ((x - xMid) / xMid) * 10;
+                container.style.transform = `perspective(1000px) rotateX(${xRotation}deg) rotateY(${yRotation}deg) scale(1.05)`;
+                container.style.transition = 'none';
+            });
+            container.addEventListener('mouseleave', () => {
+                container.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale(1)`;
+                container.style.transition = 'transform 0.5s ease';
+            });
+
+            // Typewriter Effect for Special Message
+            const msg = "Wishing you a lifetime of happiness, success, and endless joy! ❤️";
+            let i = 0;
+            function typeWriter() {
+                if (i < msg.length) {
+                    document.getElementById("special-message").innerHTML += msg.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 60);
+                }
+            }
+            setTimeout(typeWriter, 1500);
+
+            // Create Floating Emojis
+            function createFloatingEmojis() {
+                const emojis = ['❤️', '🎉', '🎁', '✨', '🎂'];
+                const interval = setInterval(() => {
+                    const el = document.createElement('div');
+                    el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    el.className = 'floating-emoji';
+                    el.style.left = Math.random() * 100 + 'vw';
+                    el.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                    el.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+                    document.body.appendChild(el);
+                    setTimeout(() => el.remove(), 6000);
+                }, 300);
+                setTimeout(() => clearInterval(interval), 10000);
+            }
+            createFloatingEmojis();
 
             // Add classes for image animation
             document.getElementById('laptop-image').classList.add('revealed-image');
